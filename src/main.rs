@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 // use std::collections::BTreeSet;
 use eframe::egui;
 use frames::*;
@@ -10,23 +12,36 @@ fn main() {
 }
 
 struct App {
+    gen_data: GenAppData,
     wins: Vec<Frame>
 }
 
 impl App {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         Self {
+            gen_data: GenAppData {token: String::from("FF00FF00")},
             wins: vec![
-                Frame::new(Box::new(frame1::Frame1::new())),
-                Frame::new(Box::new(frame2::Frame2::new()))
+                Frame::new(Box::new(frame1::Frame1::new("frame1"))),
+                Frame::new(Box::new(frame2::Frame2::new("frame2")))
             ]
         }
     }
 
     pub fn draw_content(&mut self, ctx: &egui::Context) {
         for win in &mut self.wins {
-            if win.is_open {
-                win.frame.redraw(ctx)
+            if win.is_open() {
+                win.frame.redraw(ctx, &self.gen_data);
+            }
+        }
+    }
+
+    /// Open specefied by name window, and close others
+    pub fn open_exact(&mut self, frame: &str) {
+        for win in &mut self.wins {
+            if win.frame.name() == frame {
+                win.open(&self.gen_data);
+            } else {
+                win.close();
             }
         }
     }
@@ -34,7 +49,7 @@ impl App {
     pub fn open(&mut self, frame: &str) {
         for win in &mut self.wins {
             if win.frame.name() == frame {
-                win.is_open = true;
+                win.open(&self.gen_data);
                 break;
             }
         }
@@ -43,7 +58,7 @@ impl App {
     pub fn close(&mut self, frame: &str) {
         for win in &mut self.wins {
             if win.frame.name() == frame {
-                win.is_open = false;
+                win.close();
                 break;
             }
         }

@@ -2,8 +2,16 @@ pub mod frame1;
 pub mod frame2;
 
 pub struct Frame {
-	pub is_open: bool,
+	is_open: bool,
+	
 	pub frame: Box<dyn Drawable>
+}
+
+/// Contains common fields for all frames and App state (current point_id ?)
+pub struct GenAppData {
+	pub token: String
+	
+	// And others
 }
 
 impl Frame {
@@ -13,12 +21,30 @@ impl Frame {
 			frame: frame
 		}
 	}
+
+	pub fn open(&mut self, gen_data: &GenAppData) {
+		self.frame.open(gen_data);
+		self.is_open = true;
+	}
+
+	pub fn close(&mut self) {
+		self.is_open = false;
+	}
+
+	pub fn is_open(&self) -> bool {
+		self.is_open
+	}
+
+	// and any generic control functions
 }
 
 pub trait Drawable {
-    /// `&'static` so we can also use it as a key to store open/close state.
-	fn name(&self) -> &'static str;
+    /// `&'a` so we can also use it as a key to store open/close state.
+	fn name<'a>(&'a self) -> &'a str;
 
-	/// Show windows, etc
-	fn redraw(&mut self, ctx: &egui::Context);
+	/// Show window, etc
+	fn redraw(&mut self, ctx: &egui::Context, gen_data: &GenAppData);
+
+	/// init window - load and handle data for view
+	fn open(&mut self, gen_data: &GenAppData);
 }
